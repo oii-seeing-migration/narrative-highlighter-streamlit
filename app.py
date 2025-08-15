@@ -18,7 +18,7 @@ import streamlit as st
 import csv
 data_file_name = f'GuardianCorpus_Vahid'
 
-data_df = pd.read_csv(f"/data/vahid.ghafouri/Meso/{data_file_name}_AI_Annotated.csv")
+data_df = pd.read_csv(f"data/{data_file_name}_AI_Annotated.csv")
 data_df.head(1)
 data_df.dropna(subset=['classification_Meso_Qwen3-32B'], inplace=True)
 
