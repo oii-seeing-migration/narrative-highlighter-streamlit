@@ -1,16 +1,7 @@
 # %%
 import pandas as pd
-import time
-import requests
-from bs4 import BeautifulSoup
 import json
 import re
-import os
-import random
-import numpy as np
-from tqdm.notebook import tqdm
-tqdm.pandas()
-
 import streamlit as st
 
 
