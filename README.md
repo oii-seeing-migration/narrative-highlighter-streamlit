@@ -1,15 +1,15 @@
 # Narrative Highlighter (Guardian)
 
-Interactive Streamlit app to explore Guardian articles annotated with:
+Interactive Streamlit app to explore migration-related narratives in UK news articles annotated with:
 - Narrative frames (macro)
 - Meso narratives (children) with text fragments
 
 The app highlights text fragments for selected meso narratives and lets you filter articles by frame and meso.
 
-## Demo URL
+## Streamlit URL
 
-- Local (when you run it): http://localhost:8501
-- Remote server example: http://YOUR_SERVER_IP:8501
+For usage, simply open the app from here:
+https://narrative-highlighter-preannotated.streamlit.app/
 
 ## Features
 
@@ -73,13 +73,6 @@ Run on a remote server:
 ```bash
 streamlit run app.py --server.address 0.0.0.0 --server.port 8501
 # Then visit: http://YOUR_SERVER_IP:8501
-```
-
-Optionally tunnel from your laptop:
-
-```bash
-ssh -L 8501:localhost:8501 user@YOUR_SERVER_IP
-# Then open: http://localhost:8501
 ```
 
 ## Usage
