@@ -35,6 +35,15 @@ data_df['classification_Meso_Qwen3-32B'] = data_df['classification_Meso_Qwen3-32
 st.set_page_config(page_title="Narrative Highlighter", layout="wide")
 
 # -----------------------------
+# Sidebar navigation
+# -----------------------------
+st.sidebar.subheader("Navigation")
+st.sidebar.page_link("app.py", label="Article Highlighter", icon="📰")
+st.sidebar.page_link("pages/01_Dataset_Overview.py", label="Dataset Overview", icon="📊")
+
+
+
+# -----------------------------
 # Sidebar filters
 # -----------------------------
 st.sidebar.header("Filters")
