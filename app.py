@@ -38,8 +38,18 @@ st.set_page_config(page_title="Narrative Highlighter", layout="wide")
 # Sidebar navigation
 # -----------------------------
 st.sidebar.subheader("Navigation")
-st.sidebar.page_link("app.py", label="Article Highlighter", icon="📰")
-st.sidebar.page_link("pages/01_Dataset_Overview.py", label="Dataset Overview", icon="📊")
+try:
+    # Works on recent Streamlit; may fail on some Cloud runtimes
+    st.sidebar.page_link("app.py", label="Article Highlighter", icon="📰")
+    st.sidebar.page_link("pages/01_Dataset_Overview.py", label="Dataset Overview", icon="📊")
+except Exception:
+    # Fallback navigation
+    choice = st.sidebar.radio("Go to", ["Article Highlighter", "Dataset Overview"], index=0, key="nav_radio")
+    if choice == "Dataset Overview":
+        try:
+            st.switch_page("pages/01_Dataset_Overview.py")
+        except Exception:
+            st.sidebar.info("Use the built-in page selector to navigate to 'Dataset Overview'.")
 
 
 
