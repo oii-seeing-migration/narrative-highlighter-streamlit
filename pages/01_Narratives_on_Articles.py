@@ -44,8 +44,10 @@ st.set_page_config(page_title="Narrative Highlighter", layout="wide")
 st.sidebar.subheader("Navigation")
 try:
     st.sidebar.page_link("navigation_page.py", label="Navigation Page", icon="🧭")
-    st.sidebar.page_link("pages/01_Narratives_Dashboard.py", label="Narratives Dashboard", icon="📊")
-    st.sidebar.page_link("pages/02_Narratives_on_Articles.py", label="Narratives on Articles", icon="📰")
+    st.sidebar.page_link("pages/01_Narratives_on_Articles.py", label="Narratives on Articles", icon="📰")
+    st.sidebar.page_link("pages/02_Aggregative_Dashboard.py", label="Aggregative Dashboard", icon="📊")
+    st.sidebar.page_link("pages/03_Contrastive_Dashboard.py", label="Contrastive Dashboard", icon="⚖️")
+    st.sidebar.page_link("pages/04_Temporal_Dashboard.py", label="Temporal Dashboard", icon="⏱")
 except Exception:
     nav_choice = st.sidebar.radio(
         "Go to",
