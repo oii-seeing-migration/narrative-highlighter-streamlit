@@ -7,27 +7,31 @@ import ast
 # -----------------------------
 # Load data
 # -----------------------------
-data_file_name = f'GuardianCorpus_Vahid'
-data_df = pd.read_csv(f"data/{data_file_name}_AI_Annotated.csv")
-frame_meso_df = pd.read_excel('data/frame_meso_counts.xlsx')  # columns: 'narrative frame', 'meso narrative', 'count'
-frames_df = pd.read_excel('data/all_frames_counts.xlsx')
+st.set_page_config(page_title="Narrative Highlighter", layout="wide")
 
-# Clean NA rows for meso json
-data_df.dropna(subset=['classification_Meso_Qwen3-32B'], inplace=True)
+@st.cache_data(show_spinner=True)
+def load_data():
+    data_file_name = "GuardianCorpus_Vahid"
+    data_df = pd.read_csv(f"data/{data_file_name}_AI_Annotated.csv")
+    frame_meso_df = pd.read_excel("data/frame_meso_counts.xlsx")
+    frames_df = pd.read_excel("data/all_frames_counts.xlsx")
 
-# Ensure classification_Meso_Qwen3-32B is a dict per row
-def _parse_mesos(val):
-    if isinstance(val, dict):
-        return val
-    try:
-        d = ast.literal_eval(val)
-        if isinstance(d, dict):
-            return d
-    except Exception:
-        pass
-    return {"results": []}
+    data_df.dropna(subset=['classification_Meso_Qwen3-32B'], inplace=True)
 
-data_df['classification_Meso_Qwen3-32B'] = data_df['classification_Meso_Qwen3-32B'].apply(_parse_mesos)
+    def _parse_mesos(val):
+        if isinstance(val, dict):
+            return val
+        try:
+            d = ast.literal_eval(val)
+            if isinstance(d, dict):
+                return d
+        except Exception:
+            pass
+        return {"results": []}
+
+    data_df['classification_Meso_Qwen3-32B'] = data_df['classification_Meso_Qwen3-32B'].apply(_parse_mesos)
+    return data_df, frame_meso_df, frames_df
+
 
 # -----------------------------
 # Streamlit config
@@ -39,19 +43,28 @@ st.set_page_config(page_title="Narrative Highlighter", layout="wide")
 # -----------------------------
 st.sidebar.subheader("Navigation")
 try:
-    # Works on recent Streamlit; may fail on some Cloud runtimes
-    st.sidebar.page_link("app.py", label="Article Highlighter", icon="📰")
-    st.sidebar.page_link("pages/01_Dataset_Overview.py", label="Dataset Overview", icon="📊")
+    st.sidebar.page_link("navigation_page.py", label="Navigation Page", icon="🧭")
+    st.sidebar.page_link("pages/01_Narratives_Dashboard.py", label="Narratives Dashboard", icon="📊")
+    st.sidebar.page_link("pages/02_Narratives_on_Articles.py", label="Narratives on Articles", icon="📰")
 except Exception:
-    # Fallback navigation
-    choice = st.sidebar.radio("Go to", ["Article Highlighter", "Dataset Overview"], index=0, key="nav_radio")
-    if choice == "Dataset Overview":
+    nav_choice = st.sidebar.radio(
+        "Go to",
+        ["Navigation Page", "Narratives Dashboard", "Narratives on Articles"],
+        key="nav_radio"
+    )
+    target_map = {
+        "Navigation Page": "navigation_page.py",
+        "Narratives Dashboard": "pages/01_Narratives_Dashboard.py",
+        "Narratives on Articles": "pages/02_Narratives_on_Articles.py",
+    }
+    if target_map[nav_choice].endswith(".py"):
         try:
-            st.switch_page("pages/01_Dataset_Overview.py")
+            st.switch_page(target_map[nav_choice])
         except Exception:
-            st.sidebar.info("Use the built-in page selector to navigate to 'Dataset Overview'.")
+            st.sidebar.info("Use the built-in page selector (Streamlit multipage menu) to navigate.")
 
-
+# Load (spinner will appear now)
+data_df, frame_meso_df, frames_df = load_data()
 
 # -----------------------------
 # Sidebar filters

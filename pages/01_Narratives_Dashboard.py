@@ -5,6 +5,33 @@ import altair as alt
 import ast
 
 # -----------------------------
+# Sidebar navigation
+# -----------------------------
+st.sidebar.subheader("Navigation")
+try:
+    st.sidebar.page_link("navigation_page.py", label="Navigation Page", icon="🧭")
+    st.sidebar.page_link("pages/01_Narratives_Dashboard.py", label="Narratives Dashboard", icon="📊")
+    st.sidebar.page_link("pages/02_Narratives_on_Articles.py", label="Narratives on Articles", icon="📰")
+except Exception:
+    nav_choice = st.sidebar.radio(
+        "Go to",
+        ["Navigation Page", "Narratives Dashboard", "Narratives on Articles"],
+        key="nav_radio"
+    )
+    target_map = {
+        "Navigation Page": "navigation_page.py",
+        "Narratives Dashboard": "pages/01_Narratives_Dashboard.py",
+        "Narratives on Articles": "pages/02_Narratives_on_Articles.py",
+    }
+    if target_map[nav_choice].endswith(".py"):
+        try:
+            st.switch_page(target_map[nav_choice])
+        except Exception:
+            st.sidebar.info("Use the built-in page selector (Streamlit multipage menu) to navigate.")
+
+
+
+# -----------------------------
 # Data loading and helpers
 # -----------------------------
 @st.cache_data(show_spinner=True)
@@ -99,12 +126,12 @@ def aggregate_range(df_range: pd.DataFrame):
 # -----------------------------
 # UI
 # -----------------------------
-st.title("Dataset Overview")
-
-df = load_data()
+st.title("Narratives' Dashboard")
 
 # Sidebar controls
 st.sidebar.header("Overview Filters")
+
+df = load_data()
 
 # Date range picker
 dates = df["date_dt"].dropna()
