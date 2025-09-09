@@ -28,8 +28,13 @@ min_dt = dates.min().date()
 max_dt = dates.max().date()
 
 st.sidebar.header("Temporal Settings")
-freq = st.sidebar.selectbox("Granularity", ["Weekly", "Monthly"], index=0)
-freq_code = "W" if freq == "Weekly" else "M"
+freq = st.sidebar.selectbox("Granularity", ["Weekly", "Monthly", "Yearly"], index=0)
+freq_code_map = {
+    "Weekly": "W",
+    "Monthly": "M",
+    "Yearly": "Y"
+}
+freq_code = freq_code_map[freq]
 
 picked = st.sidebar.date_input(
     "Date range",
@@ -53,7 +58,7 @@ if ts.empty:
 # Top frames overall (to filter selection)
 overall = (
     ts.groupby("narrative frame")["articles"]
-      .sum().sort_values(ascending=False).head(15).index.tolist()
+      .sum().sort_values(ascending=False).head(30).index.tolist()
 )
 
 selected_frames = st.multiselect(

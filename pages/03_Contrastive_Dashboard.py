@@ -41,7 +41,7 @@ period_a = _norm(period_a)
 period_b = _norm(period_b)
 
 min_support = st.sidebar.slider("Min combined article support", 1, 50, 3, 1)
-top_n = st.sidebar.slider("Top N frames (by |salience|)", 5, 40, 20, 1)
+top_n = st.sidebar.slider("Top N frames (by |difference|)", 5, 40, 20, 1)
 
 contrast_df, agg_a, agg_b = compute_frame_contrast(df, period_a, period_b, min_articles_total=min_support)
 
@@ -51,44 +51,92 @@ if contrast_df.empty:
     st.info("No frames pass support threshold.")
     st.stop()
 
-contrast_df["abs_salience"] = contrast_df["salience_score"].abs()
-top_contrast = contrast_df.sort_values("abs_salience", ascending=False).head(top_n).copy()
+# --------------------------------------------------------------------
+# Diverging Bar Chart (replace previous salience bar)
+# Rank by absolute percentage point difference in prevalence
+# --------------------------------------------------------------------
+contrast_df["abs_diff"] = contrast_df["diff_prevalence"].abs()
+top_contrast = contrast_df.sort_values("abs_diff", ascending=False).head(top_n).copy()
 
-# Salience bar
-height = max(24 * len(top_contrast), 320)
-bar = alt.Chart(top_contrast).mark_bar().encode(
-    x=alt.X("salience_score:Q", title="Directional Salience (std_diff * log10(support))", axis=alt.Axis(format=".2f")),
+# Prepare long-form with signed values (A goes left / negative, B goes right / positive)
+plot_df = top_contrast[["narrative frame", "prevalence_a", "prevalence_b", "diff_prevalence"]].copy()
+plot_df = plot_df.melt(
+    id_vars=["narrative frame", "diff_prevalence"],
+    value_vars=["prevalence_a", "prevalence_b"],
+    var_name="period_var",
+    value_name="prevalence"
+)
+plot_df["period"] = plot_df["period_var"].map({"prevalence_a": "A", "prevalence_b": "B"})
+plot_df["signed_prevalence"] = plot_df.apply(
+    lambda r: -r["prevalence"] if r["period"] == "A" else r["prevalence"], axis=1
+)
+
+# Order frames from most A‑associated to most B‑associated (diff_prevalence ascending)
+frame_order = plot_df.drop_duplicates("narrative frame") \
+                     .sort_values("diff_prevalence")["narrative frame"].tolist()
+
+max_val = plot_df["prevalence"].max()
+x_limit = float((max_val * 1.15) if max_val > 0 else 0.05)
+
+bar = alt.Chart(plot_df).mark_bar().encode(
+    x=alt.X("signed_prevalence:Q",
+            title="Prevalence (% of articles)  A ◀        ▶ B",
+            scale=alt.Scale(domain=[-x_limit, x_limit], nice=False),
+            axis=alt.Axis(format=".0%")),
     y=alt.Y("narrative frame:N",
-            sort=alt.SortField(field="abs_salience", order="descending"),
+            sort=frame_order,
             axis=alt.Axis(labelLimit=0, labelOverlap=False),
             title="Frame"),
-    color=alt.condition("datum.salience_score > 0", alt.value("#2c7bb6"), alt.value("#d7191c")),
+    color=alt.Color("period:N",
+                    title="Period",
+                    scale=alt.Scale(domain=["A", "B"], range=["#d7191c", "#2c7bb6"])),
     tooltip=[
         "narrative frame",
-        "articles_a:Q", "articles_b:Q",
-        alt.Tooltip("prevalence_a:Q", format=".1%"),
-        alt.Tooltip("prevalence_b:Q", format=".1%"),
-        alt.Tooltip("diff_prevalence:Q", format=".1%"),
-        alt.Tooltip("salience_score:Q", format=".2f"),
-        "support_articles:Q"
+        alt.Tooltip("period:N", title="Period"),
+        alt.Tooltip("prevalence:Q", title="Prevalence", format=".1%"),
+        alt.Tooltip("diff_prevalence:Q", title="B - A (pp)", format=".1%")
     ]
-).properties(title="Top Contrasting Frames (B vs A)", height=height)
-st.altair_chart(bar, use_container_width=True)
+).properties(
+    title="Diverging Usage of Narrative Frames (Period A vs Period B)",
+    height=max(26 * len(frame_order), 320)
+)
 
-# Slope chart
-long_df = pd.concat([
-    top_contrast[["narrative frame", "prevalence_a"]].rename(columns={"prevalence_a": "prevalence"}).assign(period="A"),
-    top_contrast[["narrative frame", "prevalence_b"]].rename(columns={"prevalence_b": "prevalence"}).assign(period="B")
-], ignore_index=True)
+# Center difference labels (percentage point diff) near x=0
+diff_labels = top_contrast[["narrative frame", "diff_prevalence"]].copy()
+diff_labels["pp_diff"] = diff_labels["diff_prevalence"] * 100  # percentage points
 
-slope = alt.Chart(long_df).mark_line(point=True).encode(
-    x=alt.X("period:N", title=None),
-    y=alt.Y("prevalence:Q", axis=alt.Axis(format=".0%"), title="Prevalence"),
-    detail="narrative frame",
-    color=alt.Color("narrative frame:N", legend=None),
-    tooltip=["narrative frame", alt.Tooltip("prevalence:Q", format=".1%"), "period"]
-).properties(title="Prevalence Shift (A → B)", height=height)
-st.altair_chart(slope, use_container_width=True)
+text_layer = alt.Chart(diff_labels).mark_text(
+    fontSize=11,
+    fontWeight="bold",
+    dx=0
+).encode(
+    x=alt.value(bar.properties().width or 0),  # placeholder (will be overridden by transform)
+    y=alt.Y("narrative frame:N", sort=frame_order),
+    text=alt.Text("pp_diff:Q", format="+.1f"),
+    color=alt.value("#444")
+).transform_calculate(
+    # Place text at 0 (center); Vega-Lite expression sets x to 0 value on scale
+    signed_prevalence="0"
+).encode(
+    x=alt.X("signed_prevalence:Q", scale=alt.Scale(domain=[-x_limit, x_limit], nice=False), axis=alt.Axis(labels=False))
+)
+
+diverging_chart = bar  # (Optional to add center text: bar + text_layer)
+
+st.altair_chart(diverging_chart, use_container_width=True)
+
+st.markdown(
+    "*Left (red) bars represent Period A; right (blue) bars represent Period B. Frames ordered from most A‑associated (negative difference) to most B‑associated (positive). Differences shown in percentage points (B - A).*"
+)
+
 
 with st.expander("Raw Contrast Data"):
-    st.dataframe(top_contrast.drop(columns=["abs_salience"]))
+    st.dataframe(top_contrast[[
+        "narrative frame",
+        "articles_a", "articles_b",
+        "prevalence_a", "prevalence_b",
+        "diff_prevalence",
+        "abs_diff",
+        "salience_score",  # retained for reference
+        "support_articles"
+    ]])

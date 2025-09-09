@@ -5,17 +5,6 @@ from lib.narratives_utils import load_data, aggregate_range
 
 st.set_page_config(page_title="Aggregative Dashboard", layout="wide")
 
-# Sidebar navigation
-st.sidebar.subheader("Navigation")
-try:
-    st.sidebar.page_link("navigation_page.py", label="Navigation Page", icon="🧭")
-    st.sidebar.page_link("pages/01_Narratives_on_Articles.py", label="Narratives on Articles", icon="📰")
-    st.sidebar.page_link("pages/02_Aggregative_Dashboard.py", label="Aggregative Dashboard", icon="📊")
-    st.sidebar.page_link("pages/03_Contrastive_Dashboard.py", label="Contrastive Dashboard", icon="⚖️")
-    st.sidebar.page_link("pages/04_Temporal_Dashboard.py", label="Temporal Dashboard", icon="⏱")
-except Exception:
-    pass
-
 st.title("Aggregative Dashboard")
 
 df = load_data()
@@ -43,58 +32,86 @@ else:
 agg = aggregate_range(df_range)
 st.write(f"Articles in range: {agg['total_articles']}")
 
+# -------------------------------------------------
+# Frames bar chart (ONLY number of articles retained)
+# -------------------------------------------------
 frames = agg["frames_summary"].head(25)
 frames_h = max(24 * len(frames), 360)
 frames_chart = alt.Chart(frames).mark_bar().encode(
     x=alt.X("articles:Q", title="# Articles"),
-    y=alt.Y("narrative frame:N", sort="-x", axis=alt.Axis(labelLimit=0, labelOverlap=False), title="Narrative Frame"),
+    y=alt.Y(
+        "narrative frame:N",
+        sort="-x",
+        axis=alt.Axis(labelLimit=0, labelOverlap=False),
+        title="Narrative Frame"
+    ),
+    # Single color (remove other encodings since only articles matter)
+    color=alt.value("#1f77b4"),
     tooltip=[
-        "narrative frame",
-        "articles:Q",
-        "fragments:Q",
-        alt.Tooltip("prevalence:Q", format=".1%"),
-        alt.Tooltip("intensity:Q", format=".2f"),
+        alt.Tooltip("narrative frame:N", title="Frame"),
+        alt.Tooltip("articles:Q", title="# Articles")
     ],
-    color=alt.Color("prevalence:Q", scale=alt.Scale(scheme="blues"), legend=None),
 ).properties(title="Top Frames (by # Articles)", height=frames_h)
 st.altair_chart(frames_chart, use_container_width=True)
 
-meso = agg["meso_summary"].head(25)
+# -------------------------------------------------
+# Meso narratives: attach dominant parent frame and simplify
+# Label format: Frame: Meso Narrative
+# -------------------------------------------------
+# Use exploded annotations to find dominant (most frequent) frame per meso
+if "exploded" in agg:
+    ex = agg["exploded"]
+else:
+    # Fallback: reconstruct minimal exploded if not returned
+    ex = pd.DataFrame()
+
+if not ex.empty:
+    meso_parent = (
+        ex[ex["meso narrative"].notna() & (ex["meso narrative"] != "")]
+        .groupby("meso narrative")["narrative frame"]
+        .agg(lambda s: s.value_counts().idxmax() if not s.value_counts().empty else "")
+        .reset_index()
+        .rename(columns={"narrative frame": "parent_frame"})
+    )
+    meso = agg["meso_summary"].merge(meso_parent, on="meso narrative", how="left")
+else:
+    meso = agg["meso_summary"].copy()
+    meso["parent_frame"] = ""
+
+meso = meso.head(25)
+meso["frame_meso_label"] = meso.apply(
+    lambda r: f"[{r['parent_frame']}]: {r['meso narrative']}" if r["parent_frame"] else r["meso narrative"],
+    axis=1
+)
+
 meso_h = max(24 * len(meso), 360)
 meso_chart = alt.Chart(meso).mark_bar().encode(
     x=alt.X("articles:Q", title="# Articles"),
     y=alt.Y(
-        "meso narrative:N",
+        "frame_meso_label:N",
         sort="-x",
         axis=alt.Axis(
             labelLimit=0,
             labelOverlap=False,
-            title="Meso Narrative",
-            titleAngle=270,      # keep vertical
-            titlePadding=140,    # increase to push title further left
+            title="Frame: Meso Narrative",
+            titleAngle=270,
+            titlePadding=300,
             labelPadding=6
         )
     ),
+    # Color bars by parent frame to visually separate groups
+    color=alt.Color("parent_frame:N", title="Frame", legend=alt.Legend(columns=1)),
     tooltip=[
-        "meso narrative",
-        "articles:Q",
-        "fragments:Q",
-        alt.Tooltip("prevalence:Q", format=".1%"),
-        alt.Tooltip("intensity:Q", format=".2f")
+        alt.Tooltip("parent_frame:N", title="Frame"),
+        alt.Tooltip("meso narrative:N", title="Meso Narrative"),
+        alt.Tooltip("articles:Q", title="# Articles")
     ],
-    color=alt.Color("articles:Q", legend=None, scale=alt.Scale(scheme="teals"))
 ).properties(title="Top Meso Narratives (by # Articles)", height=meso_h)
 st.altair_chart(meso_chart, use_container_width=True)
 
-# Intensity vs Prevalence scatter (frames)
-scatter = alt.Chart(agg["frames_summary"]).mark_circle(size=160).encode(
-    x=alt.X("prevalence:Q", axis=alt.Axis(format=".0%"), title="Prevalence (share of articles)"),
-    y=alt.Y("intensity:Q", title="Intensity (fragments per article w/ frame)"),
-    size=alt.Size("articles:Q", title="# Articles"),
-    color=alt.Color("articles:Q", scale=alt.Scale(scheme="plasma"), legend=None),
-    tooltip=["narrative frame", "articles", alt.Tooltip("prevalence:Q", format=".1%"), alt.Tooltip("intensity:Q", format=".2f")]
-).properties(title="Frames: Prevalence vs Intensity")
-st.altair_chart(scatter, use_container_width=True)
 
-with st.expander("Raw Data"):
-    st.dataframe(agg["frames_summary"])
+with st.expander("Raw Frame Data"):
+    st.dataframe(agg["frames_summary"][["narrative frame", "articles", "prevalence", "intensity"]])
+
+with st.expander("Raw Meso Data"):
+    st.dataframe(meso[["parent_frame", "meso narrative", "articles"]])
