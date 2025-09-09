@@ -100,7 +100,7 @@ meso_chart = alt.Chart(meso).mark_bar().encode(
         )
     ),
     # Color bars by parent frame to visually separate groups
-    color=alt.Color("parent_frame:N", title="Frame", legend=alt.Legend(columns=1)),
+    # color=alt.Color("parent_frame:N", title="Frame", legend=alt.Legend(columns=1)),
     tooltip=[
         alt.Tooltip("parent_frame:N", title="Frame"),
         alt.Tooltip("meso narrative:N", title="Meso Narrative"),
