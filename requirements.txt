@@ -2,3 +2,7 @@ streamlit>=1.30.0
 pandas
 openpyxl
 altair
+wordcloud
+matplotlib
+psycopg[binary]
+python-dotenv
