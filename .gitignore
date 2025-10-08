@@ -3,11 +3,17 @@ __pycache__/
 *.pyc
 
 # Virtual environment folders
+.env
 venv/
 .venv/
+env/
 
 # Streamlit local secrets
 .streamlit/secrets.toml
 
 # Mac / OS junk
 .DS_Store
+
+# Test notebooks
+
+pages/test.*.ipynb

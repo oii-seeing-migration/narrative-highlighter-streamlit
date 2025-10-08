@@ -332,6 +332,10 @@ mesoNarratives = {
         "Migrants contribute to honest local economies",
         "Migrants increase theft and property crimes",
         "Migration brings organized theft rings",
+        "Some migrants combat smuggling by reporting networks",
+        "Migrants aid authorities against smuggling rings",
+        "Migrants are involved in smuggling operations",
+        "Migration increases human smuggling activity"
     ],
     # "migrants as sexual predators": [
     #     "Sexual assault is not more common among migrants",
@@ -356,12 +360,6 @@ mesoNarratives = {
         "Migrants help counter radicalization",
         "Migrants bring extremist ideologies",
         "Migration increases terrorism risks"
-    ],
-    "migrants as smugglers": [
-        "Some migrants combat smuggling by reporting networks",
-        "Migrants aid authorities against smuggling rings",
-        "Migrants are involved in smuggling operations",
-        "Migration increases human smuggling activity"
     ],
     "family rights of migrants": [
         "Family reunification strengthens migrant integration",
