@@ -1,0 +1,20 @@
+[33m004cc05[m[33m ([m[1;36mHEAD -> [m[1;32mmain[m[33m)[m Stop tracking test_db_connection.ipynb
+[33ma74e962[m Stop tracking test_db_connection.ipynb
+[33mb0e5d99[m[33m ([m[1;31morigin/main[m[33m)[m added the revised meso narrative list
+[33m9b177b3[m Add Wordclouds visualization from summaries
+[33mf098162[m Add new dependencies to requirements.txt
+[33mafc1809[m updated the readme with all the new changes in dashboards.
+[33mddc9969[m simplified all the overcomplicated dashboards
+[33mf34d03a[m added three new dashboards.
+[33m83226f1[m Turned the first page into a navigation page and moved the highlighting and dashboard functionality into separate pages.
+[33mb355db4[m fix(nav): guard page_link and add switch_page fallback; pin Streamlit; add Altair
+[33m31349db[m feat(pages): add Dataset Overview with date-range filtering and narrative aggregates
+[33m95f20e6[m Updated the database.
+[33mb0c6737[m Added taxonomy files of narrative frames and meso narratives. These files are not gonna be used directly in the code but will be used by social scientists to update the taxonomy.
+[33m27e868b[m Added openpyxl to requirements to be able to load excel files with pandas. Added streamlit app link to README.
+[33m3be0875[m Added Dev Container Folder
+[33mab87101[m Track large CSV with Git LFS
+[33m51cb2fa[m reduced data size to under 100MB for GitHub repo
+[33m3f04d0c[m reduced data size to under 100MB for GitHub repo
+[33m3583b97[m Add README and update Streamlit app with frame/meso filtering and highlights
+[33ma26ac08[m Update app.py
