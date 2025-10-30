@@ -1,4 +1,4 @@
-# Narrative Highlighter (Guardian)
+# MigNar App Streamlit
 
 Streamlit application to explore migration‑related narrative frames and meso narratives in UK news.  
 You can (1) read articles with highlighted narrative fragments and (2) view simple dashboards summarising how often frames and meso narratives appear, how they differ across two periods, and how they evolve over time.
