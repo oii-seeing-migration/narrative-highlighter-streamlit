@@ -4,7 +4,7 @@ Streamlit application to explore migration‑related narrative frames and meso n
 You can (1) read articles with highlighted narrative fragments and (2) view simple dashboards summarising how often frames and meso narratives appear, how they differ across two periods, and how they evolve over time.
 
 ## Live App
-https://narrative-highlighter-preannotated.streamlit.app/
+https://mignar.streamlit.app/
 
 ## Core Concepts
 - **Narrative Frame:** Broad thematic lens (e.g., humanitarian, security, economic).
